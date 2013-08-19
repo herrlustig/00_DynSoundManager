@@ -133,6 +133,19 @@ function MySoundManager(_id) {
 		}
 	};
 	// */
+
+	// channel stuff
+	this.channelInstruments = {};
+	this.setChannelInstrument = function (channelNr, instrumentName) {
+		this.channelInstruments[channelNr] = instrumentName;
+	}
+
+	// set channel volume 0 - 1
+	this.channelVolumes = {};
+	this.setChannelVolume = function (channelNr, volume) {
+		this.channelVolumes[channelNr] = volume;
+	}
+	///////////////// debug stuff
 	
 	this.getNamedNoteSetting = function (namedNote, settingName) {
 		try {

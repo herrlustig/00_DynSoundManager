@@ -1,3 +1,15 @@
+/**
+ * SoundManager 2: Javascript Sound for the Web
+ * ----------------------------------------------
+ * http://schillmania.com/projects/soundmanager2/
+ *
+ * Copyright (c) 2007, Scott Schiller. All rights reserved.
+ * Code licensed under the BSD License:
+ * http://www.schillmania.com/projects/soundmanager2/license.txt
+ *
+ * Flash 9 / ActionScript 3 version
+ */
+
 package {
 
   import flash.external.*;
@@ -74,6 +86,7 @@ package {
 	  
 	  
 	  this._target = new ByteArray();
+  	  // this._target2 = new ByteArray();
 
 	  this._position = 0.0;
 	  this._rate = rate; // TODO: just a test
@@ -98,12 +111,14 @@ package {
 	{
 		// writeDebug('NoteSound: sampleData Callback! Position: ' + this._position + ' Length: ' + (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1));
 
+		// stop 
 		if (this._position > (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1) ) { // TODO: also support 48khz and other formats
-			// writeDebug('NoteSound: sampleData Callback UNREGISTERING! Processed whole file. Position: ' + this._position + ' Length: ' + this.sm.instruments[this.instrumentID][this.noteID].length * 44.1);
+			writeDebug('NoteSound: sampleData Callback UNREGISTERING! Processed whole file. Position: ' + this._position + ' Length: ' + this.sm.instruments[this.instrumentID][this.noteID].length * 44.1);
 		    this.stop();
 		} else { // go on
 			var loop_start: Number = 0;
 			var loop_end: Number = 0;
+			var overlap: Number = 0; // bytes // TODO: something different then 0 // NOTE: this is only used for looping
 			if (this.loop && this.sm.loopingAllowed ) {
 				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"_skip_bytes_at_start") != null ) {
 					loop_start = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"_skip_bytes_at_start");
@@ -117,8 +132,15 @@ package {
 				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"_skip_bytes_at_end") != null ) {
 					loop_end = this.sm._getInstrumentSetting(this.instrumentID, "_skip_bytes_at_end");
 				}
+				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"overlap") != null ) {
+					overlap = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"overlap");
+					
+				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"overlap") != null ) {
+					overlap = this.sm._getInstrumentSetting(this.instrumentID, "overlap");
+				}
 			}
 			this._target.position = 0;
+			// this._target2.position = 0; 
 
 			var data: ByteArray = event.data;
 			var scaledBlockSize: Number = BLOCK_SIZE * _rate;
@@ -134,12 +156,42 @@ package {
 			var r0: Number;
 			var l1: Number;
 			var r1: Number;
+			
+			/*
+			
+			var overlap_begin: Number;
+			var overlap_adjust: Number = 1;
+			var overlap_position: Number;
+			overlap_begin = this.sm.instruments[this.instrumentID][this.noteID].bytesTotal - loop_end - overlap;
 
+			var positionInt2: int = loop_start + (this._position - overlap_begin) ;
+			var alpha2: Number = (loop_start + (this._position - overlap_begin)) - positionInt2;
+			var t2_positionTargetNum: Number = alpha2;
+			var t2_positionTargetInt: int = -1;
+			var t2_l0: Number;
+			var t2_r0: Number;
+			var t2_l1: Number;
+			var t2_r1: Number;
+			var read2: int;
+			writeDebug('ALPHA VALUES 1 2 => ' + alpha + " " + alpha2);
+			*/
+
+
+			/*
+			if (overlap > 0 && this.loop && this.sm.loopingAllowed && this._position > overlap_begin ) {
+   				writeDebug('overlap. try to read to target2 1. read from: ' + positionInt2);
+
+				
+				read2 = this.sm.instruments[this.instrumentID][this.noteID].extract( _target2, need, positionInt2); // look at original file and extract data
+				
+				writeDebug('overlap. try to read to target2 2 read #' + read2);
+			}
+			*/
 			var n: int = read == need ? BLOCK_SIZE : read / this._rate;
+			//var n2: int = read == need ? BLOCK_SIZE : read / this._rate;
 
 
-
-			for( var i: int = 0 ; i < n ; ++i ) 
+			for( var i: int = 0 ; i < n ; ++i ) // perhaps add '&& i < n2'
 			{
 				if( int( positionTargetNum ) != positionTargetInt )
 				{
@@ -151,22 +203,77 @@ package {
 					r1 = this._target.readFloat();
 				}
 				
-				data.writeFloat( l0 + alpha * ( l1 - l0 ) );
-				data.writeFloat( r0 + alpha * ( r1 - r0 ) );
-				positionTargetNum += this._rate;
+				/*
+				// TODO: only do this while in loop. e.g. when a namedNote will be stoped this should not be done above the _skip_byptes_at_end mark
+				if (overlap > 0 && this.loop && this.sm.loopingAllowed && this._position + i > overlap_begin ) { // && this._position < this.sm.instruments[this.instrumentID][this.noteID].length * 44.1 - loop_end ) {
+					overlap_position = this._position + i - overlap_begin;
+					overlap_adjust = 0.5 ; // overlap_position / overlap; // TODO: readd
+					if ( overlap_adjust > 1 ) { overlap_adjust = 1.0  ; };
+					if ( overlap_adjust < 0 ) { overlap_adjust = 0  ; };
+
+					// also read beginning of loop and fade it in with overlap_adjust (contrary to 1- overlap_adjust)
+					if( int( t2_positionTargetNum ) != t2_positionTargetInt )
+					{
+						if( i % 2000 == 0 ) { writeDebug('READ overlap area! 1' )} ;// TODO: remove again
+						try {
+							t2_positionTargetInt = t2_positionTargetNum;
+							this._target2.position = t2_positionTargetInt << 3;
+							if( i % 2000 == 0 ) { writeDebug('READ overlap area! 2' )} ;// TODO: remove again
+
+							t2_l0 = this._target2.readFloat();
+							t2_r0 = this._target2.readFloat();
+							t2_l1 = this._target2.readFloat();
+							t2_r1 = this._target2.readFloat();
+							
+							if( i % 2000 == 0 ) { writeDebug('READ overlap area! 3' )} ;// TODO: remove again
+						} catch (e: Error ) {
+							if( i % 2000 == 0 ) { writeDebug('Error: READ overlap area! 3' + e.toString() )} ;
+						}
+
+					}
+					
+
+					// data.writeFloat( ((l0 + alpha * ( l1 - l0 ))*(1.0 - overlap_adjust)) + ( (t2_l0 + alpha2 * ( t2_l1 - t2_l0 ))*(overlap_adjust) )); 
+					// data.writeFloat( ((r0 + alpha * ( r1 - r0 ))*(1.0 - overlap_adjust)) + ( (t2_r0 + alpha2 * ( t2_r1 - t2_r0 ))*(overlap_adjust) ));
+
+					
+
+					data.writeFloat( ( (t2_l0 + alpha2 * ( t2_l1 - t2_l0 ))*(overlap_adjust) )); 
+					data.writeFloat( ( (t2_r0 + alpha2 * ( t2_r1 - t2_r0 ))*(overlap_adjust) ));
+					t2_positionTargetNum += this._rate;
+					
+    			    if( i % 2000 == 0 ) { writeDebug('overlap area! pos now ' + (this._position + i) + " overlap begins at " + overlap_begin + " overlap_adjust "+ overlap_adjust); } // TODO: remove again
+
+
+				} else {
+				
+    			    if( i % 2000 == 0 ) { writeDebug('NO overlap area! pos now ' + (this._position + i) + " overlap begins at " + overlap_begin); } // TODO: remove again
+				*/
+					data.writeFloat( l0 + alpha * ( l1 - l0 ) );
+					data.writeFloat( r0 + alpha * ( r1 - r0 ) );
+					positionTargetNum += this._rate;
+
+				// }
 				
 				// to make it loop nicer you can ignore the first few and last few bytes
+				// TODO: move Setting to this.sm.instrumentNoteSetting[this.instrumentID][this.noteID] // TODO use getter method
+				// * TODO: fix &readd 
 				if ( this.loop && this.sm.loopingAllowed)  {
 					if ((_position > this.sm.instruments[this.instrumentID][this.noteID].bytesTotal - loop_end ) )
 					{
-						_position = loop_start;
+						_position = loop_start + overlap;
 					}
 				}
-				
+				// */ 
+				// if( i % 2000 == 0 ) { 	writeDebug('ALPHA VALUES 1 2 => ' + alpha + " " + alpha2); }
+
 				alpha += this._rate;
 				while( alpha >= 1.0 ) --alpha;
-				
-			} 
+				/*
+				alpha2 += this._rate;
+				while( alpha2 >= 1.0 ) --alpha2;
+				*/
+			} // end for block
 			if( i < BLOCK_SIZE )
 			{
 				while( i < BLOCK_SIZE )

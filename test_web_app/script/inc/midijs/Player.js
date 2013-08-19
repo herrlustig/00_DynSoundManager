@@ -194,11 +194,25 @@ var getLength = function() {
 	return totalTime;
 };
 
-// TODO: move to plugin, just lazy
+root.dynSoundManager = null;
+root.setDynSoundManager = function (manager) {
+	root.dynSoundManager = manager;
+}
+
+// TODO: move to plugin, I'm just lazy 
 var testNoteOn = function (channel, note, velocity, delay) {
 	var note_in = note;
 	return	window.setTimeout(function () {  
-								mysoundManager.play("harp", ""+note_in, velocity/127)
+								if (root.dynSoundManager != null) {
+									var instrumentName = root.dynSoundManager.channelInstruments[channel]; 
+									if (typeof(instrumentName) != "undefined") {
+										if (typeof(root.dynSoundManager.channelVolumes[channel]) == "number") {
+											root.dynSoundManager.play(instrumentName, ""+note_in, (velocity/127)*root.dynSoundManager.channelVolumes[channel]); // TODO: add channel volume
+										} else {
+											root.dynSoundManager.play(instrumentName, ""+note_in, velocity/127); // TODO: add channel volume
+										}
+									}
+								}
 								// console.log("play with setTimeout note", note_in);
 								}, delay*1000)
 	};

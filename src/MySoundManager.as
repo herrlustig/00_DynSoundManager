@@ -258,12 +258,12 @@ package {
 	
     public function _getInstrumentSetting(instrumentName:String, settingName:String) :* {
 		try {
-          writeDebug('try to get instrument setting ' + settingName);
-          writeDebug('It is ' + instrumentSettings[instrumentName][settingName]);
+          // writeDebug('try to get instrument setting ' + settingName);
+          // writeDebug('It is ' + instrumentSettings[instrumentName][settingName]);
 
 		  return instrumentSettings[instrumentName][settingName];
 		} catch(e: Error) {
-          writeDebug('Fatal: could not get instrument setting ' + settingName + "  => " + e.toString());
+          // writeDebug('Fatal: could not get instrument setting ' + settingName + "  => " + e.toString());
 		  return null
         }
 	}
@@ -277,7 +277,7 @@ package {
         writeDebug('instrumentsetting already exists');
 
 	  }
-	  if (settingName == "vol" || settingName == "pan" || settingName ==  "_skip_bytes_at_end" || settingName ==  "_skip_bytes_at_start") {
+	  if (settingName == "vol" || settingName == "pan" || settingName ==  "_skip_bytes_at_end" || settingName ==  "_skip_bytes_at_start" || settingName == "overlap") {
 		instrumentSettings[instrumentName][settingName] = Number(settingValue);
 	  } else {
 		instrumentSettings[instrumentName][settingName] = settingValue;
@@ -287,16 +287,16 @@ package {
 	
 	public function _getInstrumentNoteSetting(instrumentName:String, noteName:String, settingName:String) :* {
 		try {
-		  writeDebug('try to get instrument note setting ' + settingName);
+		  // writeDebug('try to get instrument note setting ' + settingName);
 
-		  writeDebug('it is ' + instrumentNoteSettings[instrumentName][noteName][settingName]);
+		  // writeDebug('it is ' + instrumentNoteSettings[instrumentName][noteName][settingName]);
 		  return instrumentNoteSettings[instrumentName][noteName][settingName];
 		} catch(e: Error) {
-          writeDebug('Fatal: could not get instrument note setting ' + settingName + "  => " + e.toString());
+          // writeDebug('Fatal: could not get instrument note setting ' + settingName + "  => " + e.toString());
 		  return null
         }
 	}
-	// TODO: add this => || settingName ==  "_skip_bytes_at_end" || settingName ==  "_skip_bytes_at_start"
+
     public function _setInstrumentNoteSetting(instrumentName:String, noteName:String, settingName:String, settingValue:String) : void {
 	  if (instrumentNoteSettings[instrumentName] == null) {
 		instrumentNoteSettings[instrumentName] = new Dictionary();
@@ -310,7 +310,7 @@ package {
 	  } else {
         writeDebug('instrumentnotesetting already exists');
 	  }
-	  if (settingName == "vol" || settingName == "pan") {
+	  if (settingName == "vol" || settingName == "pan"|| settingName ==  "_skip_bytes_at_end" || settingName ==  "_skip_bytes_at_start" || settingName == "overlap") {
 		instrumentNoteSettings[instrumentName][noteName][settingName] = Number(settingValue);
 	  } else {
 		instrumentNoteSettings[instrumentName][noteName][settingName] = settingValue;
