@@ -42,10 +42,11 @@ function MySoundManager(_id) {
 	*/
 
 
-    this.play = function(instrumentId, noteId, volume, loop) {
+    this.play = function(instrumentId, noteId, volume, duration, loop) {
 		loop = (typeof(loop) == "undefined"  ? false : true);
+		duration = (typeof(duration) == "number"  ? duration : 0); // duration of 0 means that the whole file will be played
 		volume = (typeof(volume) == "number"  ? volume : 0.5)
-		flash._play(instrumentId, noteId, volume, loop);
+		flash._play(instrumentId, noteId, volume, loop, duration);
     };
 
 	/*  special play function which returns the id of the sound.
@@ -55,7 +56,7 @@ function MySoundManager(_id) {
 	this.playNamedNote = function(name, instrumentId, noteId, volume) {
 		if ( typeof(name) != "undefined") {
 			volume = (typeof(volume) == "number"  ? volume : 0.5)
-			return flash._play(instrumentId, noteId, volume, true, name);
+			return flash._play(instrumentId, noteId, volume, true, 0, name);
 		} else { 
 			this._writeDebug ("can not create named note without a name");
 			return false

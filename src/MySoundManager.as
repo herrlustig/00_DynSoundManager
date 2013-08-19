@@ -157,8 +157,8 @@ package {
 		try {
 			_setInstrumentSetting(instrumentID, "vol", "0.6"); // not to load
 			_setInstrumentSetting(instrumentID, "pan", "0");   // center
-			_setInstrumentSetting(instrumentID, "_skip_bytes_at_end", "0"); // only when looping
-			_setInstrumentSetting(instrumentID, "_skip_bytes_at_start", "0");
+			_setInstrumentSetting(instrumentID, "skip_bytes_at_end", "0"); // only when looping
+			_setInstrumentSetting(instrumentID, "skip_bytes_at_start", "0");
 		} catch(e: Error) {
 			writeDebug('Could not set settings');
 
@@ -216,14 +216,14 @@ package {
             return nearestKey;
     }
 	
-    public function _play(instrumentID:String, noteID:String, volume:Number=0.5, loop: Boolean = false, name:String = null) : void { // TODO: or instead of note ID the midiNr, or both
+    public function _play(instrumentID:String, noteID:String, volume:Number=0.5, loop: Boolean = false, duration:uint = 0, name:String = null) : void { // TODO: or instead of note ID the midiNr, or both
       writeDebug('_play()');
 	  
 	  // choose sound and calculate rate
 	  if (this.instruments[instrumentID] != null ) { // only if instrument exists
 		  if ( this.instruments[instrumentID][noteID] != null ) {
   			writeDebug('found note in dict, play it');
-  		    this.lastNote = new NoteSound(this, instrumentID, noteID, 1.0, volume,  loop, name); // this will play immediately
+  		    this.lastNote = new NoteSound(this, instrumentID, noteID, 1.0, volume,  loop, name, duration); // this will play immediately
   			writeDebug('saved it in "lastNote" of soundmanager');
 
 		  } else {
@@ -242,7 +242,7 @@ package {
 					// calculate rate change (ratio between them calculated via semitone #)
 					var new_rate: Number = Math.pow(2, (noteID_x - nearKey)/12.0);
 					writeDebug('could calculate rate / ratio "' + new_rate + '"');
-					new NoteSound(this, instrumentID, nearKey_s, new_rate, volume, loop, name); // this will play immediately
+					new NoteSound(this, instrumentID, nearKey_s, new_rate, volume, loop, name, duration); // this will play immediately
 				} else {
 					writeDebug('Note isNaN Could not find this note "' + noteID_x + '" in instrument "' + instrumentID + '" nearKey "' + nearKey + '"');
 				}
@@ -277,7 +277,7 @@ package {
         writeDebug('instrumentsetting already exists');
 
 	  }
-	  if (settingName == "vol" || settingName == "pan" || settingName ==  "_skip_bytes_at_end" || settingName ==  "_skip_bytes_at_start" || settingName == "overlap") {
+	  if (settingName == "vol" || settingName == "pan" || settingName ==  "skip_bytes_at_end" || settingName ==  "skip_bytes_at_start" || settingName == "fade_out_time" || settingName == "overlap") {
 		instrumentSettings[instrumentName][settingName] = Number(settingValue);
 	  } else {
 		instrumentSettings[instrumentName][settingName] = settingValue;
@@ -310,7 +310,7 @@ package {
 	  } else {
         writeDebug('instrumentnotesetting already exists');
 	  }
-	  if (settingName == "vol" || settingName == "pan"|| settingName ==  "_skip_bytes_at_end" || settingName ==  "_skip_bytes_at_start" || settingName == "overlap") {
+	  if (settingName == "vol" || settingName == "pan"|| settingName ==  "skip_bytes_at_end" || settingName ==  "skip_bytes_at_start" || settingName == "fade_out_time" || settingName == "overlap") {
 		instrumentNoteSettings[instrumentName][noteName][settingName] = Number(settingValue);
 	  } else {
 		instrumentNoteSettings[instrumentName][noteName][settingName] = settingValue;

@@ -115,7 +115,7 @@ root.loadFile = function (file, callback) {
 	///
 	var fetch = new XMLHttpRequest();
 	fetch.open('GET', file);
-	fetch.overrideMimeType("text/plain; charset=x-user-defined");
+	fetch.overrideMimeType("text/plain; charset=x-user-defined"); // this function does not exist in IE // TODO: fix that
 	fetch.onreadystatechange = function () {
 		if (this.readyState === 4 && this.status === 200) {
 			var t = this.responseText || "";

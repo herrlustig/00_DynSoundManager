@@ -64,14 +64,21 @@ package {
 	public var _rate: Number;
 	public var loop:Boolean = false;
 	
-    public function NoteSound(orig_SoundManager: MySoundManager, instrumentID: String, noteID: String, rate: Number, volume:Number=0.5, loop:Boolean = false, name:String = null) {
+	// for note duration
+	public var startTime:uint;
+	public var duration:uint = 0; // means the whole file will be played
+	public var fadeOutTime:uint; // default x ms
+	
+    public function NoteSound(orig_SoundManager: MySoundManager, instrumentID: String, noteID: String, rate: Number, volume:Number=0.5, loop:Boolean = false, name:String = null, duration:uint=0) {
       this.sm = orig_SoundManager;
 	  writeDebug('NoteSound: new one! instrument "' + instrumentID + '" noteID "' + noteID +'" rate "' + rate + '" volume "' + volume + '" loop "' + loop + '"' );
       this.instrumentID = instrumentID;
       this.noteID = noteID;
 	  this.lastValues.volume = volume;
 	  this.loop = loop; // TODO: readd
-	  
+	  this.startTime = getTimer();
+	  this.duration = duration;
+	  this.fadeOutTime = 600; // default // TODO: really high now, lower it after testing
 	  
 	  this._target = new ByteArray();
 
@@ -97,25 +104,35 @@ package {
 	public function sampleData( event: SampleDataEvent ): void
 	{
 		// writeDebug('NoteSound: sampleData Callback! Position: ' + this._position + ' Length: ' + (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1));
-
-		if (this._position > (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1) ) { // TODO: also support 48khz and other formats
+		var time_played: uint = this.timePlayed();
+		var fadeOutFactor:Number = 1;
+		
+		if (this._position > (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1) || (this.duration != 0 && time_played > this.duration) ) { // TODO: also support 48khz and other formats
 			// writeDebug('NoteSound: sampleData Callback UNREGISTERING! Processed whole file. Position: ' + this._position + ' Length: ' + this.sm.instruments[this.instrumentID][this.noteID].length * 44.1);
 		    this.stop();
 		} else { // go on
 			var loop_start: Number = 0;
 			var loop_end: Number = 0;
 			if (this.loop && this.sm.loopingAllowed ) {
-				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"_skip_bytes_at_start") != null ) {
-					loop_start = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"_skip_bytes_at_start");
+				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"skip_bytes_at_start") != null ) {
+					loop_start = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"skip_bytes_at_start");
 					
-				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"_skip_bytes_at_start") != null ) {
-					loop_start = this.sm._getInstrumentSetting(this.instrumentID, "_skip_bytes_at_start");
+				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"skip_bytes_at_start") != null ) {
+					loop_start = this.sm._getInstrumentSetting(this.instrumentID, "skip_bytes_at_start");
 				}
-				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"_skip_bytes_at_end") != null ) {
-					loop_end = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"_skip_bytes_at_end");
+				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"skip_bytes_at_end") != null ) {
+					loop_end = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"skip_bytes_at_end");
 					
-				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"_skip_bytes_at_end") != null ) {
-					loop_end = this.sm._getInstrumentSetting(this.instrumentID, "_skip_bytes_at_end");
+				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"skip_bytes_at_end") != null ) {
+					loop_end = this.sm._getInstrumentSetting(this.instrumentID, "skip_bytes_at_end");
+				}
+			}
+			if ( this.duration != 0 ) {
+				if ( this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"fade_out_time") != null ) {
+						this.fadeOutTime = this.sm._getInstrumentNoteSetting(this.instrumentID,this.noteID,"fade_out_time");
+						
+				} else if ( this.sm._getInstrumentSetting(this.instrumentID,"fade_out_time") != null ) {
+						this.fadeOutTime = this.sm._getInstrumentSetting(this.instrumentID, "fade_out_time");
 				}
 			}
 			this._target.position = 0;
@@ -128,7 +145,7 @@ package {
 			var positionTargetNum: Number = alpha;
 			var positionTargetInt: int = -1;
 			var read: int = this.sm.instruments[this.instrumentID][this.noteID].extract( _target, need, positionInt ); // look at original file and extract data
-			writeDebug('normal target. read #' + read);
+			// writeDebug('normal target. read #' + read);
 			
 			var l0: Number;
 			var r0: Number;
@@ -136,8 +153,7 @@ package {
 			var r1: Number;
 
 			var n: int = read == need ? BLOCK_SIZE : read / this._rate;
-
-
+			
 
 			for( var i: int = 0 ; i < n ; ++i ) 
 			{
@@ -151,8 +167,18 @@ package {
 					r1 = this._target.readFloat();
 				}
 				
-				data.writeFloat( l0 + alpha * ( l1 - l0 ) );
-				data.writeFloat( r0 + alpha * ( r1 - r0 ) );
+				// callculate fadeout factor
+				time_played = this.timePlayed();
+				if ( !this.loop && this.duration != 0 && time_played > (this.duration - this.fadeOutTime)) {
+					fadeOutFactor = 1 - ((time_played - (this.duration - this.fadeOutTime))/this.fadeOutTime);
+					if (fadeOutFactor > 1) fadeOutFactor = 1;
+					if (fadeOutFactor < 0) fadeOutFactor = 0;
+
+					if ( i % 2000 == 0) { writeDebug('fadeout factor set to ' + fadeOutFactor + " fadeout time was " + fadeOutTime + " duration " + duration+ " time played " + time_played); }
+
+				} 
+				data.writeFloat( (l0 + alpha * ( l1 - l0 ))*fadeOutFactor );
+				data.writeFloat( (r0 + alpha * ( r1 - r0 ))*fadeOutFactor );
 				positionTargetNum += this._rate;
 				
 				// to make it loop nicer you can ignore the first few and last few bytes
@@ -198,6 +224,11 @@ package {
     }
 */
 	
+	public function timePlayed() : uint {
+		return getTimer() - this.startTime;
+	}
+	
+	
 	// TODO: trigger fade out
 	public function stop() : void {
 		this._sound.removeEventListener(SampleDataEvent.SAMPLE_DATA, sampleData);
@@ -227,7 +258,7 @@ package {
 
     public function applyTransform() : void {
 	  try {
-    	  writeDebug("Try to set vol / vol");
+    	  // writeDebug("Try to set vol / vol");
 		  var vol__: Number = this.lastValues.volume*this.sm.vol;
 		  if(this.sm._getInstrumentSetting(this.instrumentID, "vol") != null) {
 			vol__ *= Number(this.sm._getInstrumentSetting(this.instrumentID, "vol"));
@@ -245,7 +276,7 @@ package {
 		  var st: SoundTransform = new SoundTransform( vol__, pan__);
 		  this.soundChannel.soundTransform = st;
 	  } catch (e: Error) {
-		writeDebug("Fatal: Could not set vol / vol" + e.toString());
+		// writeDebug("Fatal: Could not set vol / vol" + e.toString());
 	  }
     }
 
