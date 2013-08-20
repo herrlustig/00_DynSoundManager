@@ -108,6 +108,14 @@ NOTE: The MIDI.Player does not work in IE
 	// first tell the MIDI.Player where the DynSoundManager is
 	MIDI.Player.setDynSoundManager(dynsoundManager);
 	
+	// now you have to asign instruments to the different channels
+	// register them
+	dynsoundManager.setChannelInstrument(0, "harp");
+	dynsoundManager.setChannelInstrument(1, "piano");
+	dynsoundManager.setChannelInstrument(2, "female");
+	dynsoundManager.setChannelInstrument(3, "drums");
+	// ...
+	
 	// load a song and start it
 	MIDI.Player.loadFile('audio/test.mid');
 	MIDI.Player.start()
