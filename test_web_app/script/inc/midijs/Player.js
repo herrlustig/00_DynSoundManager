@@ -371,7 +371,7 @@ var startAudio = function (currentTime, fromCache) {
 				eventQueue.push({
 					event: event,
 					source: setTimeout(function () {  
-								// mysoundManager.play("harp", ""+note) // TODO: stop, and naturally move to plugin.js
+								// dynsoundManager.play("harp", ""+note) // TODO: stop, and naturally move to plugin.js
 								// console.log("play note ", event.noteNumber);
 								}, (currentTime / 1000 + ctx.currentTime)*1000 ),
 					// MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),

@@ -23,7 +23,7 @@ package {
 
   public class NoteSound extends Sound {
 
-    public var sm: MySoundManager = null;
+    public var sm: DynSoundManager = null;
     // externalInterface references (for Javascript callbacks)
     public var baseJSController: String = "soundManager";
     public var soundChannel: SoundChannel = new SoundChannel();
@@ -69,7 +69,7 @@ package {
 	public var duration:uint = 0; // means the whole file will be played
 	public var fadeOutTime:uint; // default x ms
 	
-    public function NoteSound(orig_SoundManager: MySoundManager, instrumentID: String, noteID: String, rate: Number, volume:Number=0.5, loop:Boolean = false, name:String = null, duration:uint=0) {
+    public function NoteSound(orig_SoundManager: DynSoundManager, instrumentID: String, noteID: String, rate: Number, volume:Number=0.5, loop:Boolean = false, name:String = null, duration:uint=0) {
       this.sm = orig_SoundManager;
 	  writeDebug('NoteSound: new one! instrument "' + instrumentID + '" noteID "' + noteID +'" rate "' + rate + '" volume "' + volume + '" loop "' + loop + '"' );
       this.instrumentID = instrumentID;
@@ -106,6 +106,7 @@ package {
 		// writeDebug('NoteSound: sampleData Callback! Position: ' + this._position + ' Length: ' + (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1));
 		var time_played: uint = this.timePlayed();
 		var fadeOutFactor:Number = 1;
+		this.applyTransform(); // TODO: test if not to much. else make a separated callback which is not called that much
 		
 		if (this._position > (this.sm.instruments[this.instrumentID][this.noteID].length * 44.1) || (this.duration != 0 && time_played > this.duration) ) { // TODO: also support 48khz and other formats
 			// writeDebug('NoteSound: sampleData Callback UNREGISTERING! Processed whole file. Position: ' + this._position + ' Length: ' + this.sm.instruments[this.instrumentID][this.noteID].length * 44.1);

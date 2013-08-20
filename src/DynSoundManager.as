@@ -1,13 +1,6 @@
 /**
- * SoundManager 2: Javascript Sound for the Web
+ * DynSoundManager: a dynamic way to play sounds and songs with js and flash in browsers
  * ----------------------------------------------
- * http://schillmania.com/projects/soundmanager2/
- *
- * Copyright (c) 2007, Scott Schiller. All rights reserved.
- * Code licensed under the BSD License:
- * http://www.schillmania.com/projects/soundmanager2/license.txt
- *
- * Flash 9 / ActionScript 3 version
  */
 
 package {
@@ -41,13 +34,13 @@ package {
   import flash.utils.ByteArray;
 
 
-  public class MySoundManager extends Sprite {
+  public class DynSoundManager extends Sprite {
 
     public var version:String = "V0.1";
     public var version_as:String = "(AS3/Flash 10)";
 
     // externalInterface references (for Javascript callbacks)
-    public var baseJSController:String = "mysoundManager";
+    public var baseJSController:String = "dynsoundManager";
     
 
     // internal objects
@@ -75,7 +68,7 @@ package {
 	public var overallRate:Number = 1;
 
 	// initalize manager
-    public function MySoundManager() {
+    public function DynSoundManager() {
 
       // <d>
       this.flashDebugEnabled = true;
@@ -143,7 +136,7 @@ package {
       ExternalInterface.call(baseJSController + "['_onFlashLoad']");
 
 	  
-    } // MySoundManager()
+    } // DynSoundManager()
 	
     // methods
     // -----------------------------------
@@ -329,8 +322,10 @@ package {
 			try {		
 				if (setting == "vol") {
 					this.namedNotes[namedNote].lastValues.volume = Number(setting_value);
+					this.namedNotes[namedNote].applyTranform();
 				} else if ( setting == "pan" ){
 					this.namedNotes[namedNote].lastValues.pan = Number(setting_value);
+					this.namedNotes[namedNote].applyTranform();
 				} else if ( setting == "midiNr" ) {
 					// this.namedNotes[namedNote].lastValues.volume; // TODO
 					this.namedNotes[namedNote]._rate = Math.pow(2, (Number(setting_value) - Number(this.namedNotes[namedNote].noteID))/12.0);
@@ -415,7 +410,7 @@ package {
     public function writeDebug (s:String, logLevel:Number = 0) : Boolean {
 
 	  if (this.debugEnabled) {
-		ExternalInterface.call(baseJSController + "['_writeDebug']", "(Flash MySoundManager): " + s, null, logLevel);
+		ExternalInterface.call(baseJSController + "['_writeDebug']", "(Flash DynSoundManager): " + s, null, logLevel);
 	  }
       return true;
     }

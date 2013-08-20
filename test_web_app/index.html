@@ -6,9 +6,9 @@
 <meta name="description" content="Experimental dynamic sound library using flash" />
 <meta name="keywords" content="javascript sound, javascript audio, flash synthesis, Beat Kunz, javascript to flash communication" />
 <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
-<meta http-equiv="Content-Type" content="audio/x-midi; charset=x-user-defined" />
+<!-- <meta http-equiv="Content-Type" content="audio/x-midi; charset=x-user-defined" /> -->
 
-<script type="text/javascript" src="script/mysoundmanager.js"></script>
+<script type="text/javascript" src="script/dynsoundmanager.js"></script>
 <script type="text/javascript" src="script/envelopejs.js"></script>
 
 <!-- midi.js package -->
@@ -22,14 +22,14 @@
  <script src="script/inc/jasmid/replayer.js"></script>
  <script src="script/jquery-1.9.1.min.js"></script>
  
- <script src="script/myga.js"></script>
+ <script src="script/myga.js"></script> <!--  try to load googleanalytics -->
 
 </head>
 <body>
 	<div>	
-		<object type="application/x-shockwave-flash" data="swf/mysoundmanager_debug.swf" id="mysoundmanager" style="margin:0 10px;width:auto;height:auto;">
+		<object type="application/x-shockwave-flash" data="swf/dynsoundmanager_debug.swf" id="dynsoundmanager" style="margin:0 10px;width:auto;height:auto;">
 
-			<param name="movie" value="swf/mysoundmanager_debug.swf" />
+			<param name="movie" value="swf/dynsoundmanager_debug.swf" />
 			<param name="wmode" value="transparent" /> <!-- Or opaque, etc. -->
 
 			<!-- ? Required paramter or not, depends on application -->
@@ -43,42 +43,42 @@
 		</object>
 	</div>
 	<script type="text/javascript">
-		mysoundManager = new MySoundManager();
+		dynsoundManager = new DynSoundManager();
 
-		window.MySoundManager = MySoundManager; // constructor
-		window.mysoundManager = mysoundManager; // public API, flash callbacks etc.
+		window.DynSoundManager = DynSoundManager; // constructor
+		window.dynsoundManager = dynsoundManager; // public API, flash callbacks etc.
 		
 		// load some instruments
-		mysoundManager._onFlashLoadCallback = function() {
-				mysoundManager.load("harp", "12", "audio/harp-c2.mp3");
-				mysoundManager.load("harp", "24", "audio/harp-c3.mp3");
-				mysoundManager.load("harp", "36", "audio/harp-c4.mp3");
-				mysoundManager.load("harp", "48", "audio/harp-c5.mp3");
-				mysoundManager.load("harp", "60", "audio/harp-c6.mp3");
-				mysoundManager.load("harp", "72", "audio/harp-c7.mp3");
-				mysoundManager.load("female", "48", "audio/chorus-female-c5.mp3");
-				mysoundManager.load("female", "60", "audio/chorus-female-c6.mp3");
-				mysoundManager.load("male", "24", "audio/chorus-male-c3.mp3");
-				mysoundManager.load("male", "36", "audio/chorus-male-c4.mp3");
-				mysoundManager.load("piano", "12", "audio/piano-f-c1.mp3");
-				mysoundManager.load("piano", "24", "audio/piano-f-c3.mp3");
-				mysoundManager.load("piano", "36", "audio/piano-f-c4.mp3");
-				mysoundManager.load("piano", "48", "audio/piano-f-c5.mp3");
-				mysoundManager.load("piano", "60", "audio/piano-f-c6.mp3");
-				mysoundManager.load("piano", "72", "audio/piano-f-c7.mp3");
-				mysoundManager.load("piano", "84", "audio/piano-f-c8.mp3");
-				mysoundManager.load("ivo", "12", "audio/ivo.mp3");
-				mysoundManager.load("imi", "12", "audio/imi.mp3");
+		dynsoundManager._onFlashLoadCallback = function() {
+				dynsoundManager.load("harp", "12", "audio/harp-c2.mp3");
+				dynsoundManager.load("harp", "24", "audio/harp-c3.mp3");
+				dynsoundManager.load("harp", "36", "audio/harp-c4.mp3");
+				dynsoundManager.load("harp", "48", "audio/harp-c5.mp3");
+				dynsoundManager.load("harp", "60", "audio/harp-c6.mp3");
+				dynsoundManager.load("harp", "72", "audio/harp-c7.mp3");
+				dynsoundManager.load("female", "48", "audio/chorus-female-c5.mp3");
+				dynsoundManager.load("female", "60", "audio/chorus-female-c6.mp3");
+				dynsoundManager.load("male", "24", "audio/chorus-male-c3.mp3");
+				dynsoundManager.load("male", "36", "audio/chorus-male-c4.mp3");
+				dynsoundManager.load("piano", "12", "audio/piano-f-c1.mp3");
+				dynsoundManager.load("piano", "24", "audio/piano-f-c3.mp3");
+				dynsoundManager.load("piano", "36", "audio/piano-f-c4.mp3");
+				dynsoundManager.load("piano", "48", "audio/piano-f-c5.mp3");
+				dynsoundManager.load("piano", "60", "audio/piano-f-c6.mp3");
+				dynsoundManager.load("piano", "72", "audio/piano-f-c7.mp3");
+				dynsoundManager.load("piano", "84", "audio/piano-f-c8.mp3");
+				dynsoundManager.load("ivo", "12", "audio/ivo.mp3");
+				dynsoundManager.load("imi", "12", "audio/imi.mp3");
 
 
 
 				// register them
-				mysoundManager.setChannelInstrument(0, "harp");
-				mysoundManager.setChannelInstrument(1, "harp");
-				mysoundManager.setChannelInstrument(2, "harp");
-				mysoundManager.setChannelInstrument(3, "harp");
-				mysoundManager.setChannelInstrument(4, "harp");
-				mysoundManager.setChannelInstrument(5, "harp");
+				dynsoundManager.setChannelInstrument(0, "harp");
+				dynsoundManager.setChannelInstrument(1, "harp");
+				dynsoundManager.setChannelInstrument(2, "harp");
+				dynsoundManager.setChannelInstrument(3, "harp");
+				dynsoundManager.setChannelInstrument(4, "harp");
+				dynsoundManager.setChannelInstrument(5, "harp");
 
 				
 				/*
@@ -98,7 +98,7 @@
 				var pentatones = [0,2,4,7,9];
 				var the_chosen = pentatones[Math.floor(Math.random() * (pentatones.length + 1))];
 				var octave = Math.floor(Math.random()*octave_range)*12;
-				mysoundManager.play(instr, ""+(the_chosen + octave + init_pentatone)); 
+				dynsoundManager.play(instr, ""+(the_chosen + octave + init_pentatone)); 
 			}, tempo_harp );
 		}
 		
@@ -119,9 +119,9 @@
 		});
 		
 		// load midi file into player
-		// MIDI.Player.loadFile('audio/forellenquintett.mid', "forellen");
-		// MIDI.Player.loadFile('audio/gougeaway.mid', "gougeaway");
-		MIDI.Player.loadFile('audio/test.mid'); //, "testsong1");
+		// MIDI.Player.loadFile('audio/forellenquintett.mid')
+		// MIDI.Player.loadFile('audio/gougeaway.mid')
+		MIDI.Player.loadFile('audio/test.mid'); 
 		
 		function stopAllIntervals () {
 			// Set a fake timeout to get the highest timeout id
@@ -131,7 +131,7 @@
 			}
 			
 			// also stop following tone
-			mysoundManager.stopNamedNote("test")
+			dynsoundManager.stopNamedNote("test")
 		}
 		
 		
@@ -144,10 +144,10 @@
 			$(window).mousemove(function(e){
 			  var pageCoords = "( " + e.pageX + ", " + e.pageY + " )";
 			  var clientCoords = "( " + e.clientX + ", " + e.clientY + " )";
-			  mysoundManager.setNamedNoteSetting("test", "midiNr",""+((e.clientX/600) + (e.clientY/200) + 20));
+			  dynsoundManager.setNamedNoteSetting("test", "midiNr",""+((e.clientX/600) + (e.clientY/200) + 20));
 
 			});
-			MIDI.Player.setDynSoundManager(mysoundManager);
+			MIDI.Player.setDynSoundManager(dynsoundManager);
 			
 			
 		})
@@ -157,14 +157,14 @@
 			$("body").append("<div id='testEnv' style='position:absolute;'>O</div>");
 			setInterval(function() {
 				env.update(0.07); 
-				mysoundManager.setRate(env.current_value);
+				dynsoundManager.setRate(env.current_value);
 				$("#testEnv").css('top',""+(400 - (env.current_value*200))+"px"); 
 				$("#testEnv").css('left',""+(env.current_time*200)+"px");
 			}, 200)
 		}
 		
 		function followMouse() {
-			mysoundManager.playNamedNote("test", "harp","22")
+			dynsoundManager.playNamedNote("test", "harp","22")
 		}
 		function playMidi() {
 			MIDI.Player.start();

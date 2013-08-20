@@ -1,6 +1,6 @@
 /** @license
  *
- * MySoundManager: TODO: nice title
+ * DynSoundManager: Javascript interface to flash sampler
  */
 
 
@@ -9,9 +9,9 @@
  TODO
  */
 
-function MySoundManager(_id) {
+function DynSoundManager(_id) {
 
-  this.id = (_id || 'mysoundmanager');
+  this.id = (_id || 'dynsoundmanager');
   this.hasConsole = (window.console !== undefined && console.log !== undefined);
   this.flash = window[this.id];
   var flash = this.flash
@@ -42,8 +42,9 @@ function MySoundManager(_id) {
 	*/
 
 
-    this.play = function(instrumentId, noteId, volume, duration, loop) {
-		loop = (typeof(loop) == "undefined"  ? false : true);
+    this.play = function(instrumentId, noteId, volume, duration) {
+		// loop = (typeof(loop) == "undefined"  ? false : true);
+		loop = false;
 		duration = (typeof(duration) == "number"  ? duration : 0); // duration of 0 means that the whole file will be played
 		volume = (typeof(volume) == "number"  ? volume : 0.5)
 		flash._play(instrumentId, noteId, volume, loop, duration);
