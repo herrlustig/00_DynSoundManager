@@ -34,7 +34,8 @@ NOTE: I recommend to use low rate mp3s like 32kbit/s at the moment. MP3 with a h
 
 <h3>Playing Sounds</h3>
 There are two ways to play sounds.
-1. Playing a note once
+
+Playing a note once
 <pre>
 	// play(instrumentId, noteId, volume, durationInMilliseconds)
 	dynsoundManager.play("harp", "12", 0.5, 1000)); 
@@ -45,7 +46,7 @@ There are two ways to play sounds.
 NOTE: Volume goes from 0 to 1 and gets evaluated in a linear fashion. other values are possible, but will distort the sound. when you like it, do it ;)
 NOTE: Duration just limits the playing and will fade out in a smooth way. But it will not prolong the sample if it is to short.
 
-2. Playing a 'Named Note'
+Playing a 'Named Note'
 <pre>
 	// playNamedNote(name, instrumentId, initNoteId, initVolume)
 	// this will generate a note which will be looped again and again.
