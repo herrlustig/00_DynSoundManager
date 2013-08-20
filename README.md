@@ -183,6 +183,12 @@ NOTE: The MIDI.Player does not work in IE
 	ev.mode
 </pre>
 
+<h1> Memory usage </h1>
+<pre>
+// get memory usage
+dynsoundManager.getMemoryUse()
+</pre>
+
 <h1> Tribute </h1>
  <h3>This piece of code is inspired by the following libraries;</h3>
 * <a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a>
