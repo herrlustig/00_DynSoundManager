@@ -20,6 +20,8 @@ root.endTime = 0;
 root.restart = 0; 
 root.playing = false;
 root.timeWarp = 1;
+root.repeat = true;
+root.songs = {};
 
 //
 root.start =
@@ -34,10 +36,28 @@ root.pause = function () {
 	root.restart = tmp;
 };
 
-root.stop = function () {
-	stopAudio();
+root.resetData = function () {
 	root.restart = 0;
 	root.currentTime = 0;
+	root.data = root.original_data;
+	root.isScheduleOver = false; 
+	root.lastEventProcessed = 0;
+}
+root.changeSong = function(songUrl) {
+	root.stop();
+	root.loadFile(songUrl);
+	/* TODO: preload songs
+	if (typeof(root.songs[songName]) != "undefined"){
+		root.stop();
+		root.data = root.songs[songName];
+		root.data_original = root.songs[songName];
+	}
+	*/
+
+}
+root.stop = function () {
+	stopAudio();
+	root.resetData();
 };
 
 root.addListener = function(callback) {
@@ -48,7 +68,7 @@ root.removeListener = function() {
 	onMidiEvent = undefined;
 };
 root.onAllProcessed = function () { }; // callback when all events where processed
-
+root.onLastNotePlayed = function () { };
 root.clearAnimation = function() {
 	if (root.interval)  {
 		window.clearInterval(root.interval);
@@ -97,13 +117,23 @@ root.setAnimation = function(config) {
 
 // helpers
 
-root.loadMidiFile = function() { // reads midi into javascript array of events
-	root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp);
-	root.data = root.replayer.getData();
-	root.endTime = getLength();
+root.loadMidiFile = function(data) { // reads midi into javascript array of events
+	if (typeof(data) == "undefined") {
+		root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp);
+		root.data = root.replayer.getData();
+		root.data_original = root.data;
+
+		root.endTime = getLength();
+	} 
+	/*  TODO: preload songs
+	else {
+		root.replayer = new Replayer(data, root.timeWarp);
+		return root.replayer.getData();
+	}
+	*/
 };
 
-root.loadFile = function (file, callback) {
+root.loadFile = function (file, songName, callback) {
 	root.stop();
 	if (file.indexOf("base64,") !== -1) {
 		var data = window.atob(file.split(",")[1]);
@@ -115,7 +145,7 @@ root.loadFile = function (file, callback) {
 	///
 	var fetch = new XMLHttpRequest();
 	fetch.open('GET', file);
-	fetch.overrideMimeType("text/plain; charset=x-user-defined"); // this function does not exist in IE // TODO: fix that
+	if (fetch.overrideMimeType) fetch.overrideMimeType("text/plain; charset=x-user-defined"); // this function does not exist in IE 
 	fetch.onreadystatechange = function () {
 		if (this.readyState === 4 && this.status === 200) {
 			var t = this.responseText || "";
@@ -127,6 +157,11 @@ root.loadFile = function (file, callback) {
 			}
 			var data = ff.join("");
 			root.currentData = data;
+			/* TODO: preload songs
+			if( typeof(songName) != "undefined" ) {
+				root.songs[songName] = root.loadMidiFile(data);
+			}
+			*/
 			root.loadMidiFile();
 			if (callback) callback(data);
 		}
@@ -141,8 +176,9 @@ var queuedTime; //
 var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener callback
-var scheduleTracking = function (channel, note, currentTime, offset, message, velocity) {
+var scheduleTracking = function (channel, note, currentTime, offset, message, velocity, event_id) {
 	// console.log("Scheduletracking, note", note);
+	var event_id_in = event_id;
 	var interval = window.setTimeout(function () {
 		var data = {
 			channel: channel,
@@ -170,6 +206,16 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 		root.currentTime = currentTime;
 		if (root.currentTime === queuedTime && root.isScheduleOver == false ){ // queuedTime < root.endTime) { // grab next sequence // TODO: replace endtime with a counter of already processed notes and notes overall
 			startAudio(queuedTime, true);
+		} 
+		if (root.isScheduleOver && root.lastNoteOnEventId == event_id_in) {
+			// console.log("last note played! Stop the whole thing and reset");
+			// call callback
+			
+			root.onLastNotePlayed();
+			root.stop(); 
+			if (root.repeat) {
+				root.start();
+			}
 		}
 	}, currentTime - offset);
 	return interval;
@@ -200,16 +246,17 @@ root.setDynSoundManager = function (manager) {
 }
 
 // TODO: move to plugin, I'm just lazy 
-var testNoteOn = function (channel, note, velocity, delay) {
+var testNoteOn = function (channel, note, velocity, delay, duration) {
 	var note_in = note;
+	var duration_in = duration;
 	return	window.setTimeout(function () {  
 								if (root.dynSoundManager != null) {
 									var instrumentName = root.dynSoundManager.channelInstruments[channel]; 
 									if (typeof(instrumentName) != "undefined") {
 										if (typeof(root.dynSoundManager.channelVolumes[channel]) == "number") {
-											root.dynSoundManager.play(instrumentName, ""+note_in, (velocity/127)*root.dynSoundManager.channelVolumes[channel]); // TODO: add channel volume
+											root.dynSoundManager.play(instrumentName, ""+note_in, (velocity/127)*root.dynSoundManager.channelVolumes[channel], duration_in); // TODO: add channel volume
 										} else {
-											root.dynSoundManager.play(instrumentName, ""+note_in, velocity/127); // TODO: add channel volume
+											root.dynSoundManager.play(instrumentName, ""+note_in, velocity/127, duration_in); // TODO: add channel volume
 										}
 									}
 								}
@@ -236,6 +283,7 @@ var startAudio = function (currentTime, fromCache) {
 		root.endTime = getLength();
 	}
 	var note;
+	var duration;
 	var offset = 0;
 	var messages = 0;
 	var data = root.data;	
@@ -261,11 +309,13 @@ var startAudio = function (currentTime, fromCache) {
 			if ( data[n][4] == undefined ) { data[n][4] = data[n][1] * root.timeStretch } ; // save how it actually was played
 			queuedTime += data[n][4];
 			data[n][5] = queuedTime;
+			duration = data[n][7];
 		} else {
 			// standarized tempo (ignores setTempo events of piece
 			if ( data[n][4] == undefined ) { data[n][4] = data[n][2] * root.timeStretch } ; // save how it actually was played
 			queuedTime += data[n][4];
 			data[n][5] = queuedTime;
+			duration = data[n][8];
 		}
 		
 		var skip_note = false;
@@ -295,7 +345,9 @@ var startAudio = function (currentTime, fromCache) {
 		var channel = event.channel;
 		switch (event.subtype) {
 			case 'noteOn':
-				if (MIDI.channels[channel].mute) break;
+				root.lastNoteOnEventId = n;
+
+				if (MIDI.channels[channel].mute) break; // TODO: for DynSoundManager
 				note = event.noteNumber - (root.MIDIOffset || 0);
 				// console.log("note before push", note);
 				/*
@@ -305,13 +357,14 @@ var startAudio = function (currentTime, fromCache) {
 				*/
 				eventQueue.push({
 					event: event,
-					source:  testNoteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime),
+					source:  testNoteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime, duration),
 							
 					// MIDI.noteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 144, event.velocity)
+					interval: scheduleTracking(channel, note, queuedTime, offset, 144, event.velocity, root.lastNoteOnEventId)
 				});
 				messages ++;
 				break;
+			/*
 			case 'noteOff':
 				if (MIDI.channels[channel].mute) break;
 				note = event.noteNumber - (root.MIDIOffset || 0);
@@ -325,6 +378,7 @@ var startAudio = function (currentTime, fromCache) {
 					interval: scheduleTracking(channel, note, queuedTime, offset, 128)
 				});
 				break;
+			*/
 			default:
 				break;
 		}
@@ -364,6 +418,8 @@ var stopAudio = function () {
 	}
 	// reset noteRegistrar
 	noteRegistrar = {};
+	
+
 };
 
 })();

@@ -90,6 +90,9 @@ function MySoundManager(_id) {
     this.setVolume = function(nVol) {
       flash._setVolume(nVol);
     };
+	this.setRate = function(nVol) {
+      flash._setRate(nVol);
+    };
 	this.setLooping = function(nLoop) {
       flash._setLooping(nLoop);
     };

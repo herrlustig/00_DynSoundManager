@@ -68,8 +68,10 @@ function Envelope(value_table, times_table, mode, time_offset, curve, custom_cur
 		var _custom_x_start = custom_start;
 		var _custom_x_end = custom_end;
 		// console.log("start at:" + _custom_x_start + "} at:" 	+ _custom_x_end);
+		y = 0;
 		x = _custom_x_start;
 		var _custom_y_start = _func();
+		y = value_table.length - 1;
 		x = _custom_x_end;
 		var _custom_y_end = _func();
 		var x_diff = _custom_x_end - _custom_x_start;
@@ -83,6 +85,7 @@ function Envelope(value_table, times_table, mode, time_offset, curve, custom_cur
 			// console.log("y_delta" + _y_delta);
 			var i = 1;
 			while(i <= steps) {
+				y = i;
 				x = (i*_x_delta+_custom_x_start);
 				var val = _func();
 				val = val - (i*_y_delta); //scale
@@ -152,6 +155,7 @@ function Envelope(value_table, times_table, mode, time_offset, curve, custom_cur
 					this.current_time = 0; // send to start of envelope
 				} else {
 					this.state = 'finished';
+					this.onFinish(); // call callback
 				}
 			} else if ( this.current_time < 0 ) {
 				this.current_time = 0;
@@ -159,6 +163,7 @@ function Envelope(value_table, times_table, mode, time_offset, curve, custom_cur
 			var env_index = Math.floor(this.current_time * this.values_per_second + 1); // TODO: or calc value as mix of neighbours
 			// // console.log( "env_index: " + env_index + " current_time: " + this.current_time);
 			this.current_value = this.envelope_value_table[env_index];
+			this.onUpdate();
 		} else {
 			// console.log("not playing because the state is", this.state);
 		}
@@ -181,5 +186,9 @@ function Envelope(value_table, times_table, mode, time_offset, curve, custom_cur
 		this.current_value = this.envelope_value_table[0];
 
 	}
+	
+	this.onUpdate = function () { }; // callback
+	this.onFinish = function () { }; // callback
+
 	
 }

@@ -67,13 +67,27 @@ function Replayer(midiFile, timeWarp, eventProcessor) {
 	//
 	var midiEvent;
 	var temporal = [];
+	var memoryLastNotes = {};
+	var memoryCurrentTimes = {};
+	var memoryCurrentTimesStand = {}
 	//
 	function processEvents() {
 		function processNext() {
 			if ( midiEvent.event.type == "meta" && midiEvent.event.subtype == "setTempo" ) {
 				// tempo change events can occur anywhere in the middle and affect events that follow
 				beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat; // TODO: remove again
-			} 
+			}
+			
+			if (typeof(memoryCurrentTimes[midiEvent.event.channel]) == "undefined") {
+				memoryCurrentTimes[midiEvent.event.channel] = 0;
+			}
+			if (typeof(memoryCurrentTimesStand[midiEvent.event.channel]) == "undefined") {
+				memoryCurrentTimes[midiEvent.event.channel] = 0;
+			}
+			if (typeof(memoryLastNotes[midiEvent.event.channel]) == "undefined") {
+				memoryLastNotes[midiEvent.event.channel] = {};
+			}
+			
 			if (midiEvent.ticksToEvent > 0) {
 				var beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
 				var secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
@@ -82,9 +96,31 @@ function Replayer(midiFile, timeWarp, eventProcessor) {
 
 			}
 			var time = (secondsToGenerate * 1000 * timeWarp) || 0;
-			var time_standarized = (secondsToGenerate_standarized * 1000 ) || 0; // TODO: without timeWarp ?
+			var time_standardized = (secondsToGenerate_standarized * 1000 ) || 0; // TODO: without timeWarp ?
 
-			temporal.push([ midiEvent, time, time_standarized]);
+			temporal.push([ midiEvent, time, time_standardized]);
+			
+			if ( midiEvent.event.type == "channel" && midiEvent.event.subtype == "noteOff" ) {
+				var lastNoteOn = memoryLastNotes[midiEvent.event.channel][midiEvent.event.noteNumber];
+				temporal[lastNoteOn[0]][7] = memoryCurrentTimes[midiEvent.event.channel] - lastNoteOn[1];
+				temporal[lastNoteOn[0]][8] = memoryCurrentTimesStand[midiEvent.event.channel] - lastNoteOn[2];
+				
+
+			}
+			
+			if ( midiEvent.event.type == "channel" && midiEvent.event.subtype == "noteOn" ) {
+				memoryLastNotes[midiEvent.event.channel][midiEvent.event.noteNumber] = [temporal.length -1,memoryCurrentTimes[midiEvent.event.channel],memoryCurrentTimesStand[midiEvent.event.channel]];
+				memoryCurrentTimes[midiEvent.event.channel] = 0;
+				memoryCurrentTimesStand[midiEvent.event.channel] = 0;
+
+
+			}
+			
+			memoryCurrentTimes[midiEvent.event.channel] += time;
+			memoryCurrentTimesStand[midiEvent.event.channel] += time_standardized;
+
+
+			
 			midiEvent = getNextEvent();
 		};
 		//

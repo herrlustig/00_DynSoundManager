@@ -72,7 +72,7 @@ package {
 	public var vol:Number = 0.8;
 	public var pan:Number = 0;
 	public var loopingAllowed:Boolean = true;
-
+	public var overallRate:Number = 1;
 
 	// initalize manager
     public function MySoundManager() {
@@ -121,6 +121,8 @@ package {
 		  ExternalInterface.addCallback('_setPan', _setPan);
           ExternalInterface.addCallback('_setVolume', _setVolume);
 		  ExternalInterface.addCallback('_setLooping', _setLooping);
+          ExternalInterface.addCallback('_setRate', _setRate);
+
 		  
 		  // named note
   		  ExternalInterface.addCallback('_setNamedNoteSetting', _setNamedNoteSetting);
@@ -391,6 +393,11 @@ package {
 	// overall
     public function _setLooping(nLoop:Boolean) : void {
       this.loopingAllowed = nLoop;
+    }
+	// overall
+    public function _setRate(nRate:Number) : void {
+      // writeDebug('_setVolume: '+nRate);
+      this.overallRate = nRate;
     }
 
     public function _getMemoryUse() : String {

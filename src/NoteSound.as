@@ -138,7 +138,7 @@ package {
 			this._target.position = 0;
 
 			var data: ByteArray = event.data;
-			var scaledBlockSize: Number = BLOCK_SIZE * _rate;
+			var scaledBlockSize: Number = BLOCK_SIZE * _rate * this.sm.overallRate;
 			var positionInt: int = this._position;
 			var alpha: Number = this._position - positionInt;
 			var need: int = Math.ceil( scaledBlockSize ) + 2;
@@ -152,7 +152,7 @@ package {
 			var l1: Number;
 			var r1: Number;
 
-			var n: int = read == need ? BLOCK_SIZE : read / this._rate;
+			var n: int = read == need ? BLOCK_SIZE : read / (this._rate * this.sm.overallRate);
 			
 
 			for( var i: int = 0 ; i < n ; ++i ) 
@@ -179,7 +179,7 @@ package {
 				} 
 				data.writeFloat( (l0 + alpha * ( l1 - l0 ))*fadeOutFactor );
 				data.writeFloat( (r0 + alpha * ( r1 - r0 ))*fadeOutFactor );
-				positionTargetNum += this._rate;
+				positionTargetNum += this._rate  * this.sm.overallRate;
 				
 				// to make it loop nicer you can ignore the first few and last few bytes
 				if ( this.loop && this.sm.loopingAllowed)  {
@@ -189,7 +189,7 @@ package {
 					}
 				}
 				
-				alpha += this._rate;
+				alpha += this._rate  * this.sm.overallRate;
 				while( alpha >= 1.0 ) --alpha;
 				
 			} 

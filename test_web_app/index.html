@@ -2,10 +2,11 @@
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<title>SoundManager 2: A Javascript Sound API - MPC Demo</title>
-<meta name="description" content="An example drum machine (MPC) demo using the SoundManager 2 JavaScript Audio API" />
-<meta name="keywords" content="javascript mpc, javascript drum machine, javascript sound, javascript audio, DHTML sound, work by Scott Schiller, schillmania, javascript to flash communication" />
+<title>DynSoundManager Demo</title>
+<meta name="description" content="Experimental dynamic sound library using flash" />
+<meta name="keywords" content="javascript sound, javascript audio, flash synthesis, Beat Kunz, javascript to flash communication" />
 <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+<meta http-equiv="Content-Type" content="audio/x-midi; charset=x-user-defined" />
 
 <script type="text/javascript" src="script/mysoundmanager.js"></script>
 <script type="text/javascript" src="script/envelopejs.js"></script>
@@ -20,6 +21,8 @@
  <script src="script/inc/jasmid/midifile.js"></script>
  <script src="script/inc/jasmid/replayer.js"></script>
  <script src="script/jquery-1.9.1.min.js"></script>
+ 
+ <script src="script/myga.js"></script>
 
 </head>
 <body>
@@ -47,7 +50,6 @@
 		
 		// load some instruments
 		mysoundManager._onFlashLoadCallback = function() {
-				mysoundManager.setDebug(false);
 				mysoundManager.load("harp", "12", "audio/harp-c2.mp3");
 				mysoundManager.load("harp", "24", "audio/harp-c3.mp3");
 				mysoundManager.load("harp", "36", "audio/harp-c4.mp3");
@@ -117,9 +119,9 @@
 		});
 		
 		// load midi file into player
-		// MIDI.Player.loadFile('audio/forellenquintett.mid');
-		MIDI.Player.loadFile('audio/test.mid');
-		// MIDI.Player.loadFile('audio/gougeaway.mid');
+		// MIDI.Player.loadFile('audio/forellenquintett.mid', "forellen");
+		// MIDI.Player.loadFile('audio/gougeaway.mid', "gougeaway");
+		MIDI.Player.loadFile('audio/test.mid'); //, "testsong1");
 		
 		function stopAllIntervals () {
 			// Set a fake timeout to get the highest timeout id
@@ -142,7 +144,7 @@
 			$(window).mousemove(function(e){
 			  var pageCoords = "( " + e.pageX + ", " + e.pageY + " )";
 			  var clientCoords = "( " + e.clientX + ", " + e.clientY + " )";
-			  mysoundManager.setNamedNoteSetting("test", "midiNr",""+((e.clientX/600) + 20));
+			  mysoundManager.setNamedNoteSetting("test", "midiNr",""+((e.clientX/600) + (e.clientY/200) + 20));
 
 			});
 			MIDI.Player.setDynSoundManager(mysoundManager);
@@ -151,13 +153,14 @@
 		})
 		
 		function testEnvelope() {
-			var env = new Envelope([0,1, 0.5, 1.5], [1,2,6],undefined,undefined,"linear"); env.start();
+			var env = new Envelope([1,2, 0.5, 1.5,1], [2,4,12,6],undefined,undefined,"linear"); env.start();
 			$("body").append("<div id='testEnv' style='position:absolute;'>O</div>");
 			setInterval(function() {
 				env.update(0.07); 
+				mysoundManager.setRate(env.current_value);
 				$("#testEnv").css('top',""+(400 - (env.current_value*200))+"px"); 
 				$("#testEnv").css('left',""+(env.current_time*200)+"px");
-			}, 70)
+			}, 200)
 		}
 		
 		function followMouse() {
